@@ -4,11 +4,12 @@ import "@fontsource/great-vibes";
 import ourStory from "../assets/9N1A4389.jpg";
 import bgStory from "../assets/home_three_about_bg.png";
 import bgService from "../assets/bg.jpg";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 
 import imgSec2 from "../assets/zz.JPG";
 import imgSec21 from "../assets/zzz.JPG";
-import imgSec22 from "../assets/zzzz.JPG";
-import imgSec23 from "../assets/zzzzzzz.JPG";
+import imgSec22 from "../assets/deliver.png";
+import imgSec23 from "../assets/oficiant.jpg";
 import PicturesSwiper from "../components/picturesSwiper";
 
 const AboutUs = () => {
@@ -35,7 +36,9 @@ const AboutUs = () => {
 
           <div className="w-full flex flex-wrap justify-center items-center gap-[50px] px-4">
             <div className="relative flex w-80 flex-col rounded-xl bg-white bg-clip-border shadow-md">
-              <div className="relative mx-4 -mt-6 h-40 overflow-hidden rounded-xl bg-gradient-to-r from-yellow-500 to-orange-600"></div>
+              <div className="relative mx-4 -mt-6 h-40 overflow-hidden rounded-xl">
+                <img src={imgSec21} alt="" />
+              </div>
               <div className="p-6">
                 <h5 className="mb-2 text-xl font-semibold text-black">
                   Заказ и оформление банкетов
@@ -48,7 +51,9 @@ const AboutUs = () => {
             </div>
 
             <div className="relative flex w-80 flex-col rounded-xl bg-white bg-clip-border text-black-700 shadow-md">
-              <div className="relative mx-4 -mt-6 h-40 overflow-hidden rounded-xl bg-gradient-to-r from-yellow-500 to-orange-600"></div>
+              <div className="relative mx-4 -mt-6 h-40 overflow-hidden rounded-xl">
+                <img src={imgSec22} alt="" />
+              </div>
               <div className="p-6">
                 <h5 className="mb-2 text-xl font-semibold text-blue-gray-900">
                   Доставка
@@ -60,7 +65,9 @@ const AboutUs = () => {
             </div>
 
             <div className="relative flex w-80 flex-col rounded-xl bg-white bg-clip-border text-black-700 shadow-md">
-              <div className="relative mx-4 -mt-6 h-40 overflow-hidden rounded-xl bg-gradient-to-r from-yellow-500 to-orange-600"></div>
+              <div className="relative mx-4 -mt-6 h-40 overflow-hidden rounded-xl">
+                <img src={imgSec23} alt="" />
+              </div>
               <div className="p-6">
                 <h5 className="mb-2 text-xl font-semibold text-blue-gray-900">
                   Выездное оформление банкетов
@@ -78,19 +85,31 @@ const AboutUs = () => {
         className="w-[80%] mt-[50px] flex flex-wrap justify-center items-center gap-[20px]"
         // style={{ backgroundImage: `url(${bgService})` }}
       >
-<div className="w-full md:w-[90%] lg:w-1/2 px-4 flex flex-col gap-4 text-justify">
-  <h1 className="text-4xl sm:text-4xl md:text-4xl text-[#BD1619] handwriting mb-6 sm:mb-8">
-    Наши отличия.
-  </h1>
-  <p className="text-sm sm:text-base text-[#333] leading-relaxed">
-    Завершите трапезу чашечкой ароматного восточного чая и сладкими десертами, 
-    которые оставят приятное послевкусие. Восточные традиции гостеприимства ждут вас. 
-    Наслаждайтесь атмосферой, созданной специально для тех, кто ценит настоящий вкус!
-  </p>
-</div>
+        <div className="w-full md:w-[90%] lg:w-1/2 px-4 flex flex-col gap-4 text-justify">
+          <h1 className="text-4xl sm:text-4xl md:text-4xl text-[#BD1619] handwriting mb-6 sm:mb-8">
+            Гарантия качество и отличие.
+          </h1>
+          <div className="flex flex-col gap-2 justify-center items-start px-2 sm:px-4 md:px-6">
+            {[
+              "VIP-обслуживание — индивидуальный подход к каждому гостю",
+              "Натуральные продукты — без ГМО и добавок",
+              "Поварa из-за рубежа — профессионалы с опытом",
+              "Доступные цены — качество не должно быть дорогим",
+              "Красивая атмосфера — уют, комфорт и стиль",
+              "Гарантия качества — каждый продукт под контролем",
+            ].map((text, index) => (
+              <p
+                key={index}
+                className="text-sm 3xs:text-md sm:text-base md:text-lg text-gray-800 flex gap-2 leading-relaxed"
+              >
+                <CheckCircleIcon sx={{ color: "#BD1619", fontSize: 22 }} />
+                {text}
+              </p>
+            ))}
+          </div>
+        </div>
 
-
-        <PicturesSwiper/>
+        <PicturesSwiper />
       </div>
 
       <div

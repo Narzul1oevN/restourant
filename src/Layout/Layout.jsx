@@ -18,6 +18,9 @@ import bgFooter from "../assets/9696-1.jpg";
 import logo from "../assets/Logo Good.png";
 import Slide from "@mui/material/Slide";
 import Portion from "../components/portion";
+import dc from "../assets/dc_logo.svg"
+import eskhata from "../assets/eskhata_logo.jpg"
+import alif from "../assets/alif.png"
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
@@ -29,7 +32,8 @@ const Layout = () => {
   const [cart, setCart] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [cartItems, setCartItems] = useState([]); // Массив блюд с данными из API
-  const [cartData, setCartData] = useState([]);   // Массив {id, count} из localStorage
+  const [cartData, setCartData] = useState([]); // Массив {id, count} из localStorage
+  const [showOrderForm, setShowOrderForm] = useState(false);
 
   const cartDialog = () => setCart(true);
   const handleClose = () => setCart(false);
@@ -48,7 +52,6 @@ const Layout = () => {
       const storedCartData = getCartDataFromLocalStorage();
       if (storedCartData.length === 0) {
         setCartItems([]);
-        setCartData([]);
         return;
       }
 
@@ -208,98 +211,195 @@ const Layout = () => {
       >
         <div className="w-[80%] m-auto flex justify-between items-center text-gray text-[18px] font-[700]">
           <p className="text-[26px]">Корзина</p>
-          <button onClick={handleClose}>
+          <button onClick={() => {
+            handleClose()
+            setShowOrderForm(false)
+          }}>
             <CloseIcon />
           </button>
         </div>
 
         <DialogContent sx={{ paddingTop: "10px", paddingBottom: "10px" }}>
-          <div className="flex flex-col justify-center items-center gap-[10px]">
-            {cartItems.length === 0 ? (
-              <p>Корзина пуста</p>
-            ) : (
-              cartItems.map((item) => {
-                const cartItem = cartData.find((c) => c.id === item.id);
-                const count = cartItem ? cartItem.count : 1;
-                const price = item.portion_options?.[0]?.price || 0;
-                const totalPrice = (price * count).toFixed(2);
+          {!showOrderForm ? (
+            <div className="flex flex-col justify-center items-center gap-[10px]">
+              {cartItems.length === 0 ? (
+                <p>Корзина пуста</p>
+              ) : (
+                cartItems.map((item) => {
+                  const cartItem = cartData.find((c) => c.id === item.id);
+                  const count = cartItem ? cartItem.count : 1;
+                  const price = item.portion_options?.[0]?.price || 0;
+                  const totalPrice = (price * count).toFixed(2);
 
-                return (
-                  <div
-                    key={item.id}
-                    className="w-full p-4 border border-[lightgray] rounded-xl flex items-center justify-between gap-4 bg-white shadow-md"
-                  >
-                    <img
-                      src={item.portion_options?.[0]?.image || logo}
-                      alt={item.name}
-                      className="w-[80px] h-[80px] object-cover rounded-lg border border-gray-300"
-                    />
-                    <div className="flex-1">
-                      <h3 className="text-md font-bold text-[#1A1A1A]">
-                        {item.name}
-                      </h3>
-                      <Portion port={item.portion_options} />
-                    </div>
-                    <div className="flex flex-col items-center justify-center">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => decreaseCount(item.id)}
-                          className="w-5 h-5 flex justify-center items-center rounded-full bg-[#BD1619] text-white text-lg hover:bg-[#a20f14]"
-                        >
-                          −
-                        </button>
-                        <span className="text-base font-semibold">{count}</span>
-                        <button
-                          onClick={() => increaseCount(item.id)}
-                          className="w-5 h-5 flex justify-center items-center rounded-full bg-[#BD1619] text-white text-lg hover:bg-[#a20f14]"
-                        >
-                          +
-                        </button>
+                  return (
+                    <div
+                      key={item.id}
+                      className="w-full p-4 border border-[lightgray] rounded-xl flex items-center justify-between gap-4 bg-white shadow-md"
+                    >
+                      <img
+                        src={item.portion_options?.[0]?.image || logo}
+                        alt={item.name}
+                        className="w-[80px] h-[80px] object-cover rounded-lg border border-gray-300"
+                      />
+                      <div className="flex-1">
+                        <h3 className="text-md font-bold text-[#1A1A1A]">
+                          {item.name}
+                        </h3>
+                        <Portion port={item.portion_options} />
                       </div>
-                      <div className="text-[#BD1619] font-bold text-lg min-w-[60px] text-end">
-                        {totalPrice} сомони
+                      <div className="flex flex-col items-center justify-center">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => decreaseCount(item.id)}
+                            className="w-5 h-5 flex justify-center items-center rounded-full bg-[#BD1619] text-white text-lg hover:bg-[#a20f14]"
+                          >
+                            −
+                          </button>
+                          <span className="text-base font-semibold">
+                            {count}
+                          </span>
+                          <button
+                            onClick={() => increaseCount(item.id)}
+                            className="w-5 h-5 flex justify-center items-center rounded-full bg-[#BD1619] text-white text-lg hover:bg-[#a20f14]"
+                          >
+                            +
+                          </button>
+                        </div>
+                        <div className="text-[#BD1619] font-bold text-lg min-w-[60px] text-end">
+                          {totalPrice} сомони
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
+                  );
+                })
+              )}
+            </div>
+          ) : (
+            <form className="flex flex-col gap-4 text-sm md:text-base">
+              {/* ФИО */}
+              <label className="flex flex-col gap-1">
+                <span className="text-gray-700 font-medium">ФИО</span>
+                <input
+                  type="text"
+                  placeholder="Введите ваше имя"
+                  className="border border-gray-300 px-4 py-2 rounded-lg outline-none focus:ring-2 focus:ring-[#BD1619] transition"
+                />
+              </label>
+
+              {/* Телефон */}
+              <label className="flex flex-col gap-1">
+                <span className="text-gray-700 font-medium">Телефон</span>
+                <input
+                  type="tel"
+                  placeholder="+992 9XX XXX XXX"
+                  className="border border-gray-300 px-4 py-2 rounded-lg outline-none focus:ring-2 focus:ring-[#BD1619] transition"
+                />
+              </label>
+
+              {/* Адрес */}
+              <label className="flex flex-col gap-1">
+                <span className="text-gray-700 font-medium">
+                  Адрес доставки
+                </span>
+                <textarea
+                  placeholder="Улица, дом, квартира..."
+                  className="border border-gray-300 px-4 py-2 rounded-lg outline-none resize-none focus:ring-2 focus:ring-[#BD1619] transition"
+                  rows={3}
+                />
+              </label>
+
+              {/* Способ оплаты */}
+              <label className="flex flex-col gap-1">
+                <span className="text-gray-700 font-medium">Способ оплаты</span>
+                <select
+                  className="border border-gray-300 px-4 py-2 rounded-lg outline-none focus:ring-2 focus:ring-[#BD1619] transition"
+                  defaultValue=""
+                >
+                  <option value="" disabled>
+                    Выберите способ оплаты
+                  </option>
+                  <option value="cash">Наличные при получении</option>
+                  <option value="card">Картой при получении</option>
+                </select>
+              </label>
+              <div className="w-[90%] m-auto flex justify-evenly items-center">
+                <div className="w-[60px] h-[50px] flex justify-center items-center "> <img className="rounded-[10px]" src={dc} alt="" /> </div>
+                <div className="w-[60px] h-[50px] flex justify-center items-center "> <img className="rounded-[10px]" src={eskhata} alt="" /> </div>
+                <div className="w-[60px] h-[50px] flex justify-center items-center"> <img className="rounded-[10px]" src={alif} alt="" /> </div>
+              </div>
+            </form>
+          )}
         </DialogContent>
 
         <DialogActions sx={{ justifyContent: "center", gap: "20px", mt: 2 }}>
-          <Button
-            onClick={handleClose}
-            variant="outlined"
-            sx={{
-              textTransform: "none",
-              fontWeight: 700,
-              fontSize: "16px",
-              borderRadius: "8px",
-              color: "#000",
-              borderColor: "#000",
-              px: 3,
-              py: 1,
-              "&:hover": { backgroundColor: "#000", color: "#fff" },
-            }}
-          >
-            Отмена
-          </Button>
-          <Button
-            variant="contained"
-            sx={{
-              textTransform: "none",
-              fontWeight: 700,
-              fontSize: "16px",
-              borderRadius: "8px",
-              backgroundColor: "#BD1619",
-              px: 3,
-              py: 1,
-            }}
-            // Здесь можно добавить обработчик заказа
-          >
-            Заказать
-          </Button>
+          {!showOrderForm ? (
+            <>
+              <Button
+                onClick={handleClose}
+                variant="outlined"
+                sx={{
+                  textTransform: "none",
+                  fontWeight: 700,
+                  fontSize: "16px",
+                  borderRadius: "8px",
+                  color: "#000",
+                  borderColor: "#000",
+                  px: 3,
+                  py: 1,
+                  "&:hover": { backgroundColor: "#000", color: "#fff" },
+                }}
+              >
+                Отмена
+              </Button>
+              <Button
+                variant="contained"
+                sx={{
+                  textTransform: "none",
+                  fontWeight: 700,
+                  fontSize: "16px",
+                  borderRadius: "8px",
+                  backgroundColor: "#BD1619",
+                  px: 3,
+                  py: 1,
+                }}
+                onClick={() => setShowOrderForm(true)}
+              >
+                Заказать
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                onClick={() => setShowOrderForm(false)}
+                variant="text"
+                sx={{
+                  textTransform: "none",
+                  color: "#BD1619",
+                }}
+              >
+                Назад
+              </Button>
+              <Button
+                variant="contained"
+                sx={{
+                  textTransform: "none",
+                  fontWeight: 700,
+                  fontSize: "16px",
+                  borderRadius: "8px",
+                  backgroundColor: "#BD1619",
+                  px: 3,
+                  py: 1,
+                }}
+                onClick={() => {
+                  // здесь логика подтверждения заказа
+                  handleClose();
+                  setShowOrderForm(false);
+                }}
+              >
+                Подтвердить
+              </Button>
+            </>
+          )}
         </DialogActions>
       </Dialog>
     </div>

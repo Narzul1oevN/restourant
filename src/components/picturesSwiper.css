@@ -6,24 +6,21 @@ html,
 body {
   position: relative;
   height: 100%;
-}
-
-body {
-  background: #000;
-  font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
-  font-size: 14px;
-  color: #fff;
   margin: 0;
   padding: 0;
+  color: #fff;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 14px;
 }
 
 .swiper {
-  width: 80%;
+  width: 90%;
+  max-width: 500px;
   padding: 20px 0;
+  margin: 0 auto;
 }
 
 .swiper-slide {
-  background: #1f1f1f;
   border-radius: 1rem;
   display: flex;
   justify-content: center;
@@ -41,4 +38,47 @@ body {
   height: auto;
   object-fit: cover;
   border-radius: 1rem;
+}
+
+/* 🔽 Адаптивные размеры по брейкпоинтам */
+
+@media (max-width: 1536px) {
+  .swiper { width: 90%; }
+}
+
+@media (max-width: 1440px) {
+  .swiper { width: 90%; }
+}
+
+@media (max-width: 1280px) {
+  .swiper { width: 92%; }
+}
+
+@media (max-width: 1024px) {
+  .swiper { width: 95%; }
+}
+
+@media (max-width: 768px) {
+  .swiper { width: 98%; }
+}
+
+@media (max-width: 640px) {
+  .swiper { width: 100%; padding: 10px 0; }
+  .swiper-slide { border-radius: 0.75rem; }
+}
+
+@media (max-width: 480px) {
+  .swiper-slide img { border-radius: 0.5rem; }
+}
+
+@media (max-width: 425px) {
+  .swiper-slide { padding: 0 10px; }
+}
+
+@media (max-width: 360px) {
+  .swiper-slide { transform: scale(0.95); }
+}
+
+@media (max-width: 300px) {
+  .swiper-slide { transform: scale(0.9); }
 }

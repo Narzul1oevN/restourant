@@ -41,10 +41,11 @@ const Restaurant = () => {
   }
 
   // get категориев
+  var apiCateg = "https://bahtiyor.learn-it-academy.site/api/categories/";
   const [category, setCategory] = useState([]);
   async function getCateg() {
     try {
-      const response = await axios.get(`${api}?category=`);
+      const response = await axios.get(apiCateg);
       setCategory(response.data);
     } catch (error) {
       console.error(error);
@@ -61,18 +62,19 @@ const Restaurant = () => {
     }
   }
 
-
   const [selectedCategory, setSelectedCategory] = useState(null);
-  async function get(categoryName = "") {
-    console.log(categoryName);
+
+  async function get(categoryId = "") {
     try {
-      const response = await axios.get(`${api}?category=${categoryName}`);
+      // Если categoryId пустой, то запрос без фильтра
+      const url = categoryId ? `${api}?category=${categoryId}` : api;
+      const response = await axios.get(url);
       setData(response.data);
     } catch (error) {
       console.error("Ошибка при загрузке данных:", error);
     }
   }
-  
+
   // Запрос на сервер при первом рендере
   useEffect(() => {
     getAllDishes();
@@ -102,30 +104,42 @@ const Restaurant = () => {
 
       {/* Фильтры */}
       <div className="w-[50%] flex justify-center items-center gap-[10px] pt-[30px]">
+  {/* Кнопка "Все" */}
+  <p
+    key="all"
+    className="filter-button cursor-pointer"
+    onClick={() => {
+      setSelectedCategory(null);  // или "" — для "Все"
+      get();                      // без параметров — загрузить всё
+    }}
+  >
+    Все
+  </p>
+
+  {/* Категории из массива */}
   {category.map((elem) => (
     <p
       key={elem.id}
       className="filter-button cursor-pointer"
       onClick={() => {
-        setSelectedCategory(elem.category_name); // Сохраняем выбранную категорию
-        get(elem.category_name); // Загружаем блюда по названию категории
+        setSelectedCategory(elem.id);
+        get(elem.id);
       }}
     >
-      {elem.category_name} {elem.category_id}
+      {elem.name}
     </p>
   ))}
 </div>
 
-
       {/* Список карточек блюд */}
-      <div className="flex flex-wrap justify-center gap-6 pt-[100px] pb-[100px] px-4">
+      <div className="w-[80%] m-auto flex flex-wrap justify-start items-center gap-6 pt-[100px] pb-[100px] px-4">
         {data.map((element) => (
           <div
             key={element.id}
-            className="bg-white shadow-md rounded-lg overflow-hidden"
+            className="w-[370px] bg-white shadow-md rounded-lg overflow-hidden"
           >
             <img
-              src={element.portion_options?.[0]?.image}
+              src={element.image}
               alt={element.name}
               className="w-full h-48 object-cover"
               onClick={() => {
@@ -193,7 +207,7 @@ const Restaurant = () => {
                 mb: 2,
                 marginTop: 2,
               }}
-              image={selectedItem.portion_options?.[0]?.image || logo}
+              image={selectedItem.image}
               alt={selectedItem.name}
             />
 
