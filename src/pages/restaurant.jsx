@@ -88,6 +88,8 @@ const Restaurant = () => {
     setSelectedItem(null); // Очистим выбранный элемент
   };
 
+  const [mode, setMode] = useState("dine-in");
+
   return (
     <div
       className="w-[100%] bg-white flex flex-col justify-center items-center"
@@ -98,38 +100,52 @@ const Restaurant = () => {
 
       {/* Типы доставки */}
       <div className="w-[100%] flex flex-wrap justify-center items-center gap-[10px] pt-[30px]">
-        <p className="delivery-button">В заведении</p>
-        <p className="delivery-button">Доставка</p>
+        <p
+          className={`delivery-button cursor-pointer ${
+            mode === "dine-in" ? "active" : ""
+          }`}
+          onClick={() => setMode("dine-in")}
+        >
+          В заведении
+        </p>
+        <p
+          className={`delivery-button cursor-pointer ${
+            mode === "delivery" ? "active" : ""
+          }`}
+          onClick={() => setMode("delivery")}
+        >
+          Доставка
+        </p>
       </div>
 
       {/* Фильтры */}
-      <div className="w-[50%] flex justify-center items-center gap-[10px] pt-[30px]">
-  {/* Кнопка "Все" */}
-  <p
-    key="all"
-    className="filter-button cursor-pointer"
-    onClick={() => {
-      setSelectedCategory(null);  // или "" — для "Все"
-      get();                      // без параметров — загрузить всё
-    }}
-  >
-    Все
-  </p>
+      <div className="w-[50%] flex flex-wrap justify-center items-center gap-[10px] pt-[30px]">
+        {/* Кнопка "Все" */}
+        <p
+          key="all"
+          className="filter-button cursor-pointer"
+          onClick={() => {
+            setSelectedCategory(null); // или "" — для "Все"
+            get(); // без параметров — загрузить всё
+          }}
+        >
+          Все
+        </p>
 
-  {/* Категории из массива */}
-  {category.map((elem) => (
-    <p
-      key={elem.id}
-      className="filter-button cursor-pointer"
-      onClick={() => {
-        setSelectedCategory(elem.id);
-        get(elem.id);
-      }}
-    >
-      {elem.name}
-    </p>
-  ))}
-</div>
+        {/* Категории из массива */}
+        {category.map((elem) => (
+          <p
+            key={elem.id}
+            className="filter-button cursor-pointer"
+            onClick={() => {
+              setSelectedCategory(elem.id);
+              get(elem.id);
+            }}
+          >
+            {elem.name}
+          </p>
+        ))}
+      </div>
 
       {/* Список карточек блюд */}
       <div className="w-[80%] m-auto flex flex-wrap justify-start items-center gap-6 pt-[100px] pb-[100px] px-4">
@@ -143,8 +159,7 @@ const Restaurant = () => {
               alt={element.name}
               className="w-full h-48 object-cover"
               onClick={() => {
-                setSelectedItem(element);
-                setOpen(true);
+                // Тут вызов setSelectedItem(element) и setOpen(true) если нужно
               }}
             />
             <div className="p-4">
@@ -159,11 +174,13 @@ const Restaurant = () => {
                   {element.portion_options?.[0]?.price || "???"} сом
                 </span>
 
-                {/* Компонент выбора порции */}
+                {/* Твой компонент выбора порции */}
                 <Portion port={element.portion_options} />
 
-                {/* Кнопка "Add to cart" */}
-                <button className="add-to-cart-button">Add to cart</button>
+                {/* Кнопка "Add to cart" появляется только если режим - доставка */}
+                {mode === "delivery" && (
+                  <button className="add-to-cart-button">Add to cart</button>
+                )}
               </div>
             </div>
           </div>
