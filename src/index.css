@@ -1,0 +1,39 @@
+@import "tailwindcss";
+@theme {
+    --breakpoint-3xs: 300px;  /* очень маленькие телефоны */
+    --breakpoint-2xs: 360px;  /* маленькие телефоны (xs) */
+    --breakpoint-xs: 425px;   /* маленькие телефоны, маленький смартфон */
+    --breakpoint-sm: 480px;   /* большие телефоны, маленькие фаблеты */
+    --breakpoint-md: 640px;   /* планшеты вертикально */
+    --breakpoint-lg: 768px;   /* планшеты горизонтально */
+    --breakpoint-xl: 1024px;  /* маленькие ноутбуки */
+    --breakpoint-2xl: 1280px; /* ноутбуки, средние десктопы */
+    --breakpoint-3xl: 1440px; /* большие десктопы */
+    --breakpoint-4xl: 1536px; /* очень большие мониторы */
+  }
+
+  @import '@fontsource/great-vibes';
+
+.handwriting {
+  font-family: 'Great Vibes', cursive;
+}
+
+
+/* В файле rest.css */
+.delivery-button {
+  @apply relative z-10 px-6 py-3 border bg-[#BD1619] text-white rounded-lg font-semibold text-base
+         hover:bg-white hover:text-[#BD1619] transition-all duration-300 shadow-md hover:shadow-lg
+         hover:scale-105 active:scale-95;
+}
+
+.filter-button {
+  @apply relative z-10 px-4 py-2 border border-[#BD1619] text-[#BD1619] rounded-lg font-semibold text-sm
+         cursor-pointer hover:bg-[#BD1619] hover:text-white transition-all duration-300 shadow-md
+         hover:shadow-lg hover:scale-105 active:scale-95;
+}
+
+.add-to-cart-button {
+  @apply px-4 py-2 bg-[#BD1619] text-white rounded-lg font-semibold text-sm 
+         hover:bg-[#bd1619ef] transition-all duration-300 shadow-md hover:shadow-lg 
+         hover:scale-105 active:scale-95;
+}
