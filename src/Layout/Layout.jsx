@@ -13,65 +13,68 @@ import {
   Pinterest as PinterestIcon,
   Twitter as TwitterIcon,
 } from "@mui/icons-material";
+import AddIcon from '@mui/icons-material/Add'; // Import AddIcon
+import RemoveIcon from '@mui/icons-material/Remove'; // Import RemoveIcon
 
 import bgFooter from "../assets/9696-1.jpg";
 import logo from "../assets/Logo Good.png";
 import Slide from "@mui/material/Slide";
-import Portion from "../components/portion";
+import Portion from "../components/portion"; // Keep Portion component
 import dc from "../assets/dc_logo.svg";
 import eskhata from "../assets/eskhata_logo.jpg";
 import alif from "../assets/alif.png";
+import { useCart } from "../context/CartContext"; // Import useCart hook
+import toast from "react-hot-toast"; // убедись, что импорт есть
+
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-const API_URL = "https://bahtiyor.learn-it-academy.site/api/menu/";
+// const API_URL = "https://bahtiyor.learn-it-academy.site/api/menu/"; // Not directly used here anymore for individual item fetches
 
 const Layout = () => {
-  const [cart, setCart] = useState(false);
+  const {
+    cartData,
+    getTotalItems,
+    increaseCount,
+    decreaseCount,
+    clearCart,
+    getCartItemsDetails,
+    getTotalPrice,
+  } = useCart(); // Use cart context
+  const [cartDialogOpen, setCartDialogOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [cartItems, setCartItems] = useState([]); // Массив блюд с данными из API
-  const [cartData, setCartData] = useState([]); // Массив {id, count} из localStorage
+  const [detailedCartItems, setDetailedCartItems] = useState([]); // Array of detailed dishes for display
   const [showOrderForm, setShowOrderForm] = useState(false);
+  const [totalCartPrice, setTotalCartPrice] = useState(0);
 
-  const cartDialog = () => setCart(true);
-  const handleClose = () => setCart(false);
 
-  // Получаем массив {id, count} из localStorage
-  const getCartDataFromLocalStorage = () => {
-    const saved = localStorage.getItem("cartItems");
-    return saved ? JSON.parse(saved) : [];
+  const handleCartOpen = async () => {
+    setCartDialogOpen(true);
+    const details = await getCartItemsDetails();
+    setDetailedCartItems(details);
+    const price = await getTotalPrice();
+    setTotalCartPrice(price);
+  };
+  const handleCartClose = () => {
+    setCartDialogOpen(false);
+    setShowOrderForm(false); // Reset form state on close
   };
 
-  // Загрузка данных корзины при открытии
+  // Update detailed cart items and total price whenever cartData changes
   useEffect(() => {
-    if (!cart) return;
+    if (cartDialogOpen) {
+      const updateCartDetails = async () => {
+        const details = await getCartItemsDetails();
+        setDetailedCartItems(details);
+        const price = await getTotalPrice();
+        setTotalCartPrice(price);
+      };
+      updateCartDetails();
+    }
+  }, [cartData, cartDialogOpen, getCartItemsDetails, getTotalPrice]);
 
-    const fetchCartItems = async () => {
-      const storedCartData = getCartDataFromLocalStorage();
-      if (storedCartData.length === 0) {
-        setCartItems([]);
-        return;
-      }
-
-      try {
-        // Загрузка данных о блюдах по ID
-        const requests = storedCartData.map(({ id }) =>
-          axios.get(`${API_URL}${id}/`)
-        );
-        const responses = await Promise.all(requests);
-        const dishes = responses.map((res) => res.data);
-
-        setCartItems(dishes);
-        setCartData(storedCartData);
-      } catch (error) {
-        console.error("Ошибка при загрузке данных из корзины:", error);
-      }
-    };
-
-    fetchCartItems();
-  }, [cart]);
 
   const [rest, setRest] = useState([]);
 
@@ -86,6 +89,62 @@ const Layout = () => {
     }
   }
 
+  const makeOrder = async () => {
+  try {
+    const customerName = document.querySelector('input[placeholder="Введите ваше имя"]').value;
+    const customerPhone = document.querySelector('input[placeholder="+992 9XX XXX XXX"]').value;
+    const customerAddress = document.querySelector('textarea[placeholder="Улица, дом, квартира..."]').value;
+    const restaurantId = document.querySelector('.restaurant-selection').value;
+
+    if (!customerName || !customerPhone || !customerAddress || !restaurantId) {
+      toast.error("Пожалуйста, заполните все поля.");
+      return;
+    }
+
+    const orderItems = detailedCartItems.map(item => ({
+      portion_option: item.selectedPortion.id,
+      quantity: item.count,
+    }));
+
+    if (orderItems.length === 0) {
+      toast.error("Корзина пуста.");
+      return;
+    }
+
+    const orderPayload = {
+      restaurant: Number(restaurantId) || null,
+      customer_name: customerName,
+      customer_phone: customerPhone,
+      customer_address: customerAddress,
+      order_items: orderItems,
+    };
+
+    const loadingToast = toast.loading("Оформляем заказ...");
+
+    const response = await axios.post(
+      "https://bahtiyor.learn-it-academy.site/api/orders/",
+      orderPayload,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    toast.dismiss(loadingToast);
+
+    if (response.status === 201 || response.status === 200) {
+      toast.success("Заказ успешно оформлен!");
+    } else {
+      toast.error("Ошибка при оформлении заказа.");
+    }
+  } catch (error) {
+    console.error("Ошибка при создании заказа:", error);
+    toast.error("Произошла ошибка. Попробуйте позже.");
+  }
+};
+
+
   useEffect(() => {
     getResy();
   }, []);
@@ -98,33 +157,15 @@ const Layout = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Увеличение количества
-  const increaseCount = (id) => {
-    const updatedCartData = cartData.map((item) =>
-      item.id === id ? { ...item, count: item.count + 1 } : item
-    );
-    setCartData(updatedCartData);
+  // Increase/Decrease count (now directly from context)
+  const handleIncreaseCount = (dishId, portionId) => {
+    increaseCount(dishId, portionId);
   };
 
-  // Уменьшение количества
-  const decreaseCount = (id) => {
-    let updatedCartData = cartData
-      .map((item) =>
-        item.id === id ? { ...item, count: item.count - 1 } : item
-      )
-      .filter((item) => item.count > 0);
-
-    setCartData(updatedCartData);
-
-    if (updatedCartData.find((item) => item.id === id) === undefined) {
-      setCartItems((prev) => prev.filter((item) => item.id !== id));
-    }
+  const handleDecreaseCount = (dishId, portionId) => {
+    decreaseCount(dishId, portionId);
   };
 
-  // Сохраняем cartData в localStorage при изменении cartData
-  useEffect(() => {
-    localStorage.setItem("cartItems", JSON.stringify(cartData));
-  }, [cartData]);
 
   return (
     <div
@@ -160,7 +201,7 @@ const Layout = () => {
           </Link>
         </nav>
 
-        <div onClick={cartDialog} className="relative cursor-pointer">
+        <div onClick={handleCartOpen} className="relative cursor-pointer">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -176,7 +217,7 @@ const Layout = () => {
             />
           </svg>
           <span className="absolute -top-2 -right-2 bg-[#BD1619] text-white text-xs font-bold px-1.5 py-0.5 rounded-full shadow-md">
-            {cartData.reduce((acc, item) => acc + item.count, 0)}
+            {getTotalItems()}
           </span>
         </div>
       </header>
@@ -196,11 +237,11 @@ const Layout = () => {
           <img className="w-[120px] rounded-[20px]" src={logo} alt="Logo" />
           <p className="text-[18px] flex flex-col md:flex-row gap-2 md:gap-[30px]">
             Адрес: Аминчон Шукухи 31б{" "}
-            <span className="text-[#BD1619] font-bold">Тел: 93 888 24 24</span>
+            <span className="text-[#BD1619] font-bold">Тел: 93 888 24 24</span>
           </p>
           <p className="text-[18px] flex flex-col md:flex-row gap-2 md:gap-[30px]">
             Адрес: ул. Сырдаринский 8А{" "}
-            <span className="text-[#BD1619] font-bold">Тел: 99 300 57 57</span>
+            <span className="text-[#BD1619] font-bold">Тел: 99 300 57 57</span>
           </p>
           <div className="flex gap-4 mt-2 text-[#BD1619]">
             <FacebookIcon />
@@ -212,10 +253,10 @@ const Layout = () => {
       </footer>
 
       <Dialog
-        open={cart}
+        open={cartDialogOpen}
         TransitionComponent={Transition}
         keepMounted
-        onClose={handleClose}
+        onClose={handleCartClose}
         fullWidth
         maxWidth="xs"
         PaperProps={{
@@ -230,8 +271,7 @@ const Layout = () => {
           <p className="text-[26px]">Корзина</p>
           <button
             onClick={() => {
-              handleClose();
-              setShowOrderForm(false);
+              handleCartClose();
             }}
           >
             <CloseIcon />
@@ -241,56 +281,57 @@ const Layout = () => {
         <DialogContent sx={{ paddingTop: "10px", paddingBottom: "10px" }}>
           {!showOrderForm ? (
             <div className="flex flex-col justify-center items-center gap-[10px]">
-              {cartItems.length === 0 ? (
+              {detailedCartItems.length === 0 ? (
                 <p>Корзина пуста</p>
               ) : (
-                cartItems.map((item) => {
-                  const cartItem = cartData.find((c) => c.id === item.id);
-                  const count = cartItem ? cartItem.count : 1;
-                  const price = item.portion_options?.[0]?.price || 0;
-                  const totalPrice = (price * count).toFixed(2);
-
-                  return (
-                    <div
-                      key={item.id}
-                      className="w-full p-4 border border-[lightgray] rounded-xl flex items-center justify-between gap-4 bg-white shadow-md"
-                    >
-                      <img
-                        src={item.portion_options?.[0]?.image || logo}
-                        alt={item.name}
-                        className="w-[80px] h-[80px] object-cover rounded-lg border border-gray-300"
-                      />
-                      <div className="flex-1">
-                        <h3 className="text-md font-bold text-[#1A1A1A]">
-                          {item.name}
-                        </h3>
-                        <Portion port={item.portion_options} />
+                detailedCartItems.map((item) => (
+                  <div
+                    key={`${item.id}-${item.selectedPortion.id}`} // Unique key for dish + portion
+                    className="w-full p-4 border border-[lightgray] rounded-xl flex items-center justify-between gap-4 bg-white shadow-md cart-item-transition"
+                  >
+                    <img
+                      src={item.image || logo} // Use portion image
+                      alt={item.name}
+                      className="w-[80px] h-[80px] object-cover rounded-lg border border-gray-300"
+                    />
+                    <div className="flex-1">
+                      <h3 className="text-md font-bold text-[#1A1A1A]">
+                        {item.name}
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        {item.selectedPortion.portion_type_name}
+                      </p>
+                    </div>
+                    <div className="flex flex-col items-center justify-center">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleDecreaseCount(item.id, item.selectedPortion.id)}
+                          className="w-5 h-5 flex justify-center items-center rounded-full bg-[#BD1619] text-white text-lg hover:bg-[#a20f14]"
+                        >
+                          <RemoveIcon sx={{ fontSize: 16 }} />
+                        </button>
+                        <span className="text-base font-semibold">
+                          {item.count}
+                        </span>
+                        <button
+                          onClick={() => handleIncreaseCount(item.id, item.selectedPortion.id)}
+                          className="w-5 h-5 flex justify-center items-center rounded-full bg-[#BD1619] text-white text-lg hover:bg-[#a20f14]"
+                        >
+                          <AddIcon sx={{ fontSize: 16 }} />
+                        </button>
                       </div>
-                      <div className="flex flex-col items-center justify-center">
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => decreaseCount(item.id)}
-                            className="w-5 h-5 flex justify-center items-center rounded-full bg-[#BD1619] text-white text-lg hover:bg-[#a20f14]"
-                          >
-                            −
-                          </button>
-                          <span className="text-base font-semibold">
-                            {count}
-                          </span>
-                          <button
-                            onClick={() => increaseCount(item.id)}
-                            className="w-5 h-5 flex justify-center items-center rounded-full bg-[#BD1619] text-white text-lg hover:bg-[#a20f14]"
-                          >
-                            +
-                          </button>
-                        </div>
-                        <div className="text-[#BD1619] font-bold text-lg min-w-[60px] text-end">
-                          {totalPrice} сомони
-                        </div>
+                      <div className="text-[#BD1619] font-bold text-lg min-w-[60px] text-end">
+                        {(item.selectedPortion.price * item.count).toFixed(2)}{" "}
+                        сомони
                       </div>
                     </div>
-                  );
-                })
+                  </div>
+                ))
+              )}
+              {detailedCartItems.length > 0 && (
+                <div className="w-full text-right text-xl font-bold mt-4 text-[#1A1A1A]">
+                  Итого: {totalCartPrice.toFixed(2)} сомони
+                </div>
               )}
             </div>
           ) : (
@@ -345,7 +386,7 @@ const Layout = () => {
               <label className="flex flex-col gap-1">
                 <span className="text-gray-700 font-medium">Рестораны</span>
                 <select
-                  className="border border-gray-300 px-4 py-2 rounded-lg outline-none focus:ring-2 focus:ring-[#BD1619] transition"
+                  className="border border-gray-300 px-4 py-2 rounded-lg outline-none focus:ring-2 focus:ring-[#BD1619] transition restaurant-selection"
                   defaultValue=""
                 >
                   <option value="" disabled>
@@ -377,41 +418,64 @@ const Layout = () => {
           )}
         </DialogContent>
 
-        <DialogActions sx={{ justifyContent: "center", gap: "20px", mt: 2 }}>
+        <DialogActions sx={{ justifyContent: "center", gap: "20px", mt: 2, flexDirection: "column" }}>
           {!showOrderForm ? (
             <>
-              <Button
-                onClick={handleClose}
-                variant="outlined"
-                sx={{
-                  textTransform: "none",
-                  fontWeight: 700,
-                  fontSize: "16px",
-                  borderRadius: "8px",
-                  color: "#000",
-                  borderColor: "#000",
-                  px: 3,
-                  py: 1,
-                  "&:hover": { backgroundColor: "#000", color: "#fff" },
-                }}
-              >
-                Отмена
-              </Button>
-              <Button
-                variant="contained"
-                sx={{
-                  textTransform: "none",
-                  fontWeight: 700,
-                  fontSize: "16px",
-                  borderRadius: "8px",
-                  backgroundColor: "#BD1619",
-                  px: 3,
-                  py: 1,
-                }}
-                onClick={() => setShowOrderForm(true)}
-              >
-                Заказать
-              </Button>
+              {detailedCartItems.length > 0 && (
+                <Button
+                  onClick={() => clearCart()}
+                  variant="outlined"
+                  sx={{
+                    textTransform: "none",
+                    fontWeight: 700,
+                    fontSize: "16px",
+                    borderRadius: "8px",
+                    color: "#BD1619",
+                    borderColor: "#BD1619",
+                    px: 3,
+                    py: 1,
+                    mb: 1, // Margin bottom for spacing
+                    "&:hover": { backgroundColor: "#BD1619", color: "#fff" },
+                  }}
+                >
+                  Очистить корзину
+                </Button>
+              )}
+              <div className="flex gap-4">
+                <Button
+                  onClick={handleCartClose}
+                  variant="outlined"
+                  sx={{
+                    textTransform: "none",
+                    fontWeight: 700,
+                    fontSize: "16px",
+                    borderRadius: "8px",
+                    color: "#000",
+                    borderColor: "#000",
+                    px: 3,
+                    py: 1,
+                    "&:hover": { backgroundColor: "#000", color: "#fff" },
+                  }}
+                >
+                  Отмена
+                </Button>
+                <Button
+                  variant="contained"
+                  sx={{
+                    textTransform: "none",
+                    fontWeight: 700,
+                    fontSize: "16px",
+                    borderRadius: "8px",
+                    backgroundColor: "#BD1619",
+                    px: 3,
+                    py: 1,
+                  }}
+                  onClick={() => setShowOrderForm(true)}
+                  disabled={detailedCartItems.length === 0} // Disable if cart is empty
+                >
+                  Заказать
+                </Button>
+              </div>
             </>
           ) : (
             <>
@@ -438,8 +502,10 @@ const Layout = () => {
                 }}
                 onClick={() => {
                   // здесь логика подтверждения заказа
-                  handleClose();
+                  handleCartClose();
+                  makeOrder();
                   setShowOrderForm(false);
+                  clearCart(); // Clear cart after successful order
                 }}
               >
                 Подтвердить

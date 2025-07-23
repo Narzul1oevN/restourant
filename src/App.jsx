@@ -5,6 +5,7 @@ import Delivery from './pages/delivery'
 import AboutUs from './pages/aboutUs';
 import { createBrowserRouter } from 'react-router-dom';
 import { RouterProvider } from 'react-router';
+import { CartProvider } from './context/CartContext'; // Import CartProvider
 
 const App = () => {
   const router = createBrowserRouter([
@@ -29,7 +30,9 @@ const App = () => {
   ])
   return (
     <div>
-      <RouterProvider router={router}/>
+      <CartProvider> {/* Wrap with CartProvider */}
+        <RouterProvider router={router}/>
+      </CartProvider>
     </div>
   )
 }

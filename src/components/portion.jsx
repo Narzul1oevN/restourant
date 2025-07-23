@@ -1,20 +1,18 @@
-import React, { useState } from 'react';
+// src/components/portion.jsx
+import React from 'react';
 
-const Portion = ({ port = [] }) => {
-  const [active, setActive] = useState('');
+const Portion = ({ portions = [], activePortionId, onSelectPortion }) => {
 
-  if (!port.length) return null;
+  if (!portions.length) return null;
 
   return (
-    <div className="flex gap-[1px]">
-      {port.map((elem, index) => (
+    <div className="flex gap-[5px]"> {/* Increased gap slightly */}
+      {portions.map((elem) => (
         <span
-          key={index}
-          onClick={() => setActive(elem.portion_type_name)}
-          className={`text-xl font-bold px-3 py-1 rounded cursor-pointer transition-all duration-300 ${
-            active === elem.portion_type_name
-              ? 'bg-[#BD1619] text-white border border-[#BD1619]'
-              : 'text-[#BD1619]'
+          key={elem.id} // Use elem.id for key
+          onClick={() => onSelectPortion(elem)} // Call onSelectPortion with the element
+          className={`portion-button ${ // New class
+            activePortionId === elem.id ? 'active' : ''
           }`}
         >
           {elem.portion_type_name}

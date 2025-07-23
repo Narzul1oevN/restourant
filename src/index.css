@@ -32,8 +32,78 @@
          hover:shadow-lg hover:scale-105 active:scale-95;
 }
 
+.filter-button.active-filter {
+  @apply bg-[#BD1619] text-white; /* Style for active filter button */
+}
+
+
 .add-to-cart-button {
-  @apply px-4 py-2 bg-[#BD1619] text-white rounded-lg font-semibold text-sm 
-         hover:bg-[#bd1619ef] transition-all duration-300 shadow-md hover:shadow-lg 
+  @apply px-4 py-2 bg-[#BD1619] text-white rounded-lg font-semibold text-sm
+         hover:bg-[#a20f14] transition-all duration-300 shadow-md hover:shadow-lg
          hover:scale-105 active:scale-95;
+  display: flex; /* Make it a flex container */
+  align-items: center; /* Center items vertically */
+  justify-content: center; /* Center items horizontally */
+  gap: 0.5rem; /* Space between icon and text */
+}
+
+/* New CSS for cart item transition */
+.cart-item-transition {
+  transition: all 0.3s ease-in-out;
+}
+
+/* src/index.css */
+
+/* ... существующие стили ... */
+
+
+/* New CSS for luxury effects */
+.dish-card {
+  @apply relative rounded-xl overflow-hidden shadow-md transition-all duration-300;
+  border: 1px solid rgba(0,0,0,0.1); /* Subtle border for definition */
+}
+
+.dish-card:hover {
+  @apply shadow-xl -translate-y-2;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2), 0 0 30px rgba(189, 22, 25, 0.6); /* Deeper shadow + red glow */
+}
+
+.dish-card-image-wrapper {
+  @apply relative overflow-hidden;
+}
+
+.dish-card-image-shine {
+  @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent opacity-0 transition-all duration-500 transform -translate-x-full;
+}
+
+.dish-card:hover .dish-card-image-shine {
+  @apply opacity-100 translate-x-full;
+}
+
+/* Adjustments for portion component */
+.portion-button {
+    @apply text-red-900 font-bold px-3 py-1 rounded cursor-pointer transition-all duration-300 border border-[#BD1619];
+}
+.portion-button.active {
+    @apply bg-[#BD1619] text-white;
+}
+.portion-button:not(.active):hover {
+    @apply bg-[#BD1619] text-white;
+}
+
+
+/* Updated add-to-cart-button with glow */
+.add-to-cart-button {
+  @apply px-4 py-2 bg-[#BD1619] text-white rounded-lg font-semibold text-sm
+         hover:bg-[#a20f14] transition-all duration-300 shadow-md hover:shadow-lg
+         hover:scale-105 active:scale-95;
+  display: flex; /* Make it a flex container */
+  align-items: center; /* Center items vertically */
+  justify-content: center; /* Center items horizontally */
+  gap: 0.5rem; /* Space between icon and text */
+  box-shadow: 0 4px 8px rgba(189, 22, 25, 0.3); /* Subtle initial shadow */
+}
+
+.add-to-cart-button:hover {
+  box-shadow: 0 6px 12px rgba(189, 22, 25, 0.5), 0 0 15px rgba(189, 22, 25, 0.7); /* More prominent glow on hover */
 }
