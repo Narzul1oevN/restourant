@@ -1,3 +1,4 @@
+// src/pages/restaurant.jsx
 import React, { useEffect, useState } from "react";
 import {
   CardMedia,
@@ -10,95 +11,118 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import axios from "axios";
+import AddIcon from '@mui/icons-material/Add';
+import RemoveIcon from '@mui/icons-material/Remove';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import toast from 'react-hot-toast';
 
 import CanvaRest from "../components/canvatwo";
 import Portion from "../components/portion";
+import DishCard from "../components/DishCard";
 import logo from "../assets/Logo Good.png";
 import "../pages/rest.css";
+import { useCart } from "../context/CartContext";
 
 // Анимация для открытия модального окна
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
+const API_DISHES_URL = "https://bahtiyor.learn-it-academy.site/api/menu/";
+const API_CATEGORIES_URL = "https://bahtiyor.learn-it-academy.site/api/categories/";
+
+
 const Restaurant = () => {
-  // Состояния
-  const [open, setOpen] = useState(false); // Управление модальным окном
-  const [data, setData] = useState([]); // Все блюда
-  const [selectedItem, setSelectedItem] = useState(null); // Одно выбранное блюдо
+  // States
+  const [open, setOpen] = useState(false); // Modal window state
+  const [dishes, setDishes] = useState([]); // All dishes
+  const [selectedDish, setSelectedDish] = useState(null); // The currently selected dish for the modal
+  const [selectedPortionInModal, setSelectedPortionInModal] = useState(null); // Selected portion within the modal
+  const [categories, setCategories] = useState([]); // Categories
+  const [selectedCategory, setSelectedCategory] = useState(null); // Currently selected category filter
+  const [mode, setMode] = useState("dine-in"); // dine-in or delivery mode
 
-  const api = "https://bahtiyor.learn-it-academy.site/api/menu/";
+  const { addToCart, increaseCount, decreaseCount, getCartItemCount } = useCart();
 
-  // Получение одного блюда по ID (для модалки)
-  async function getById(id) {
+  // Function to open modal and set selected dish/portion
+  const handleOpenModal = (dish) => {
+    setSelectedDish(dish);
+    if (dish?.portion_options && dish.portion_options.length > 0) {
+      setSelectedPortionInModal(dish.portion_options[0]); // Default to first portion
+    } else {
+      setSelectedPortionInModal(null);
+    }
+    setOpen(true);
+  };
+
+  // Fetch categories
+  async function getCategories() {
     try {
-      const response = await axios.get(`${api}${id}/`);
-      setSelectedItem(response.data); // Сохраняем данные блюда
-      setOpen(true); // Открываем модалку
+      const response = await axios.get(API_CATEGORIES_URL);
+      setCategories(response.data);
     } catch (error) {
-      console.error("Ошибка при получении блюда по ID:", error);
+      console.error("Ошибка при получении категорий:", error);
     }
   }
 
-  // get категориев
-  var apiCateg = "https://bahtiyor.learn-it-academy.site/api/categories/";
-  const [category, setCategory] = useState([]);
-  async function getCateg() {
+  // Fetch dishes (with optional category filter)
+  async function getDishes(categoryId = "") {
     try {
-      const response = await axios.get(apiCateg);
-      setCategory(response.data);
-    } catch (error) {
-      console.error(error);
-    }
-  }
-
-  // Получение всех блюд
-  async function getAllDishes() {
-    try {
-      const response = await axios.get(api);
-      setData(response.data); // Сохраняем список блюд
-    } catch (error) {
-      console.error("Ошибка при получении списка блюд:", error);
-    }
-  }
-
-  const [selectedCategory, setSelectedCategory] = useState(null);
-
-  async function get(categoryId = "") {
-    try {
-      // Если categoryId пустой, то запрос без фильтра
-      const url = categoryId ? `${api}?category=${categoryId}` : api;
+      const url = categoryId ? `${API_DISHES_URL}?category=${categoryId}` : API_DISHES_URL;
       const response = await axios.get(url);
-      setData(response.data);
+      setDishes(response.data);
     } catch (error) {
       console.error("Ошибка при загрузке данных:", error);
     }
   }
 
-  // Запрос на сервер при первом рендере
+  // Initial data fetch on component mount
   useEffect(() => {
-    getAllDishes();
-    getCateg();
-    get();
+    getCategories();
+    getDishes(); // Load all dishes initially
   }, []);
 
-  // Закрытие модального окна
-  const handleClose = () => {
+  // Close modal window
+  const handleCloseModal = () => {
     setOpen(false);
-    setSelectedItem(null); // Очистим выбранный элемент
+    setSelectedDish(null);
+    setSelectedPortionInModal(null);
   };
 
-  const [mode, setMode] = useState("dine-in");
+  const itemCountInModalCart = selectedDish && selectedPortionInModal
+    ? getCartItemCount(selectedDish.id, selectedPortionInModal.id)
+    : 0;
+
+  const handleAddToCartModal = () => {
+    if (selectedDish && selectedPortionInModal) {
+      addToCart(selectedDish.id, selectedPortionInModal.id);
+    } else {
+      toast.error('Выберите порцию для добавления в корзину.');
+    }
+  };
+
+  const handleIncreaseCountModal = () => {
+    if (selectedDish && selectedPortionInModal) {
+      increaseCount(selectedDish.id, selectedPortionInModal.id);
+    }
+  };
+
+  const handleDecreaseCountModal = () => {
+    if (selectedDish && selectedPortionInModal) {
+      decreaseCount(selectedDish.id, selectedPortionInModal.id);
+    }
+  };
+
 
   return (
     <div
       className="w-[100%] bg-white flex flex-col justify-center items-center"
       style={{ fontFamily: "Times New Roman, serif" }}
     >
-      {/* Канва сверху */}
+      {/* Canva at the top */}
       <CanvaRest Scroll="#menuScrol"/>
 
-      {/* Типы доставки */}
+      {/* Delivery/Dine-in modes */}
       <div className="w-[100%] flex flex-wrap justify-center items-center gap-[10px] pt-[30px]">
         <p
           className={`delivery-button cursor-pointer ${
@@ -118,28 +142,28 @@ const Restaurant = () => {
         </p>
       </div>
 
-      {/* Фильтры */}
+      {/* Category filters */}
       <div className="w-[50%] flex flex-wrap justify-center items-center gap-[10px] pt-[30px]">
-        {/* Кнопка "Все" */}
+        {/* "All" button */}
         <p
           key="all"
-          className="filter-button cursor-pointer"
+          className={`filter-button cursor-pointer ${selectedCategory === null ? 'active-filter' : ''}`}
           onClick={() => {
-            setSelectedCategory(null); // или "" — для "Все"
-            get(); // без параметров — загрузить всё
+            setSelectedCategory(null);
+            getDishes();
           }}
         >
           Все
         </p>
 
-        {/* Категории из массива */}
-        {category.map((elem) => (
+        {/* Categories from array */}
+        {categories.map((elem) => (
           <p
             key={elem.id}
-            className="filter-button cursor-pointer"
+            className={`filter-button cursor-pointer ${selectedCategory === elem.id ? 'active-filter' : ''}`}
             onClick={() => {
               setSelectedCategory(elem.id);
-              get(elem.id);
+              getDishes(elem.id);
             }}
           >
             {elem.name}
@@ -147,55 +171,24 @@ const Restaurant = () => {
         ))}
       </div>
 
-      {/* Список карточек блюд */}
-      <div id="menuScrol" className="w-[80%] m-auto flex flex-wrap justify-start items-center gap-6 pt-[100px] pb-[100px] px-4">
-        {data.map((element) => (
-          <div
+      {/* List of dish cards */}
+      <div id="menuScrol" className="w-[80%] m-auto flex flex-wrap justify-center items-stretch gap-6 pt-[100px] pb-[100px] px-4">
+        {dishes.map((element) => (
+          <DishCard
             key={element.id}
-            className="w-[370px] bg-white shadow-md rounded-lg overflow-hidden"
-          >
-            <img
-              src={element.image}
-              alt={element.name}
-              className="w-full h-48 object-cover"
-              onClick={() => {
-                
-                  setSelectedItem(element);
-                  setOpen(true);
-                
-              }}
-            />
-            <div className="p-4">
-              <h3 className="text-xl font-semibold text-[#BD1619] mb-2">
-                {element.name}
-              </h3>
-              <p className="text-gray-600 mb-4">
-                {element.description || "Описание отсутствует"}
-              </p>
-              <div className="flex justify-between items-center mt-6">
-                <span className="text-[#BD1619] text-xl font-bold">
-                  {element.portion_options?.[0]?.price || "???"} сом
-                </span>
-
-                {/* Твой компонент выбора порции */}
-                <Portion port={element.portion_options} />
-
-                {/* Кнопка "Add to cart" появляется только если режим - доставка */}
-                {mode === "delivery" && (
-                  <button className="add-to-cart-button">Add to cart</button>
-                )}
-              </div>
-            </div>
-          </div>
+            dish={element}
+            onOpenModal={handleOpenModal}
+            mode={mode}
+          />
         ))}
       </div>
 
-      {/* Модальное окно блюда */}
+      {/* Dish Modal Window */}
       <Dialog
         open={open}
         TransitionComponent={Transition}
         keepMounted
-        onClose={handleClose}
+        onClose={handleCloseModal}
         fullWidth
         maxWidth="xs"
         PaperProps={{
@@ -205,75 +198,106 @@ const Restaurant = () => {
             textAlign: "center",
             px: 3,
             py: 2,
+            backgroundColor: "#ffffff", // Ensure white background for modal
+            boxShadow: '0 10px 30px rgba(0,0,0,0.3), 0 0 40px rgba(189, 22, 25, 0.7)', // Glow for modal
+            transition: 'box-shadow 0.3s ease-in-out',
           },
         }}
         aria-describedby="dish-dialog-description"
       >
-        <button onClick={handleClose} className="text-[#BD1619] text-end">
+        <button onClick={handleCloseModal} className="text-[#BD1619] text-end">
           <CloseIcon />
         </button>
 
-        {/* Если блюдо выбрано */}
-        {selectedItem && (
+        {/* If a dish is selected */}
+        {selectedDish && selectedPortionInModal && (
           <>
-            {/* Фото блюда */}
-            <CardMedia
-              component="img"
-              sx={{
-                height: 180,
-                width: 450,
-                borderRadius: 3,
-                mx: "auto",
-                mb: 2,
-                marginTop: 2,
-              }}
-              image={selectedItem.image}
-              alt={selectedItem.name}
-            />
+            {/* Dish Photo */}
+            <div className="dish-card-image-wrapper h-56 mx-auto w-full max-w-[450px] rounded-xl mb-4"> {/* Larger image in modal, added wrapper */}
+                <img
+                    src={selectedPortionInModal.image || selectedDish.image}
+                    alt={selectedDish.name}
+                    className="w-full h-full object-cover rounded-xl shadow-lg transition-transform duration-300 group-hover:scale-105"
+                />
+                <div className="dish-card-image-shine"></div> {/* Shine effect in modal */}
+            </div>
 
-            {/* Название */}
+
+            {/* Name */}
             <DialogTitle
-              sx={{ fontWeight: "bold", fontSize: 22, color: "#BD1619" }}
+              sx={{ fontWeight: "bold", fontSize: '2.5rem', color: "#BD1619", textShadow: '1px 1px 3px rgba(0,0,0,0.2)' }} // Larger font, text shadow
             >
-              {selectedItem.name}
+              {selectedDish.name}
             </DialogTitle>
 
-            {/* Описание */}
-            <DialogContent>
-              <DialogContentText
-                id="dish-dialog-description"
-                sx={{
-                  fontSize: 15,
-                  color: "gray",
-                  mb: 3,
-                  textAlign: "justify",
-                }}
-              >
-                {selectedItem.description || "Нет описания"}
-              </DialogContentText>
+            {/* Portion + Price + Button section */}
+            <DialogContent sx={{ paddingTop: "10px", paddingBottom: "10px" }}>
+                <div className="flex flex-col gap-4 items-center">
+                    {/* Portion selection moved up in modal */}
+                    <Portion
+                        portions={selectedDish.portion_options}
+                        activePortionId={selectedPortionInModal.id}
+                        onSelectPortion={setSelectedPortionInModal}
+                    />
+                    <p className="text-black text-xl font-bold"> {/* Made price more prominent */}
+                        Цена:{" "}
+                        <span className="text-[#BD1619] font-extrabold">
+                            {selectedPortionInModal.price || "???"} сомони
+                        </span>
+                    </p>
+                </div>
+
+                {/* Description */}
+                <DialogContentText
+                    id="dish-dialog-description"
+                    sx={{
+                        fontSize: 15,
+                        color: "gray",
+                        mt: 3, // Margin top for spacing
+                        textAlign: "justify",
+                        px: 2, // Added horizontal padding for text
+                    }}
+                >
+                    {selectedDish.description || "Нет описания"}
+                </DialogContentText>
             </DialogContent>
 
-            {/* Порция + цена + кнопка */}
+
             <DialogActions
               sx={{
-                justifyContent: "space-between",
-                alignItems: "center",
+                justifyContent: "center", // Center the button
                 px: 3,
                 pt: 2,
               }}
             >
-              <div className="flex flex-col gap-[20px]">
-                <div className="text-lg text-black flex flex-wrap gap-[20px] justify-evenly items-center">
-                  <Portion port={selectedItem.portion_options} />
-                  <p>
-                    Цена:{" "}
-                    <span className="text-[#BD1619] font-[600]">
-                      {selectedItem.portion_options?.[0]?.price || "???"} сомони
-                    </span>
-                  </p>
-                </div>
-                <button className="add-to-cart-button">Add to cart</button>
-              </div>
+                {mode === "delivery" && (
+                  <div className="flex items-center gap-2">
+                    {itemCountInModalCart === 0 ? (
+                      <button className="add-to-cart-button" onClick={handleAddToCartModal}>
+                        <ShoppingCartIcon sx={{ fontSize: 18 }} />
+                        <span>Добавить</span>
+                      </button>
+                    ) : (
+                      <div className="flex items-center bg-[#BD1619] text-white rounded-lg shadow-md overflow-hidden">
+                        <button
+                          className="px-2 py-1 hover:bg-[#a20f14] transition-colors"
+                          onClick={handleDecreaseCountModal}
+                        >
+                          <RemoveIcon sx={{ fontSize: 18 }} />
+                        </button>
+                        <span className="px-3 font-semibold text-sm">
+                          {itemCountInModalCart}
+                        </span>
+                        <button
+                          className="px-2 py-1 hover:bg-[#a20f14] transition-colors"
+                          onClick={handleIncreaseCountModal}
+                        >
+                          <AddIcon sx={{ fontSize: 18 }} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
             </DialogActions>
           </>
         )}
@@ -283,45 +307,3 @@ const Restaurant = () => {
 };
 
 export default Restaurant;
-
-// <div
-//   onClick={() => {
-//     setSelectedItem(element);
-//     setOpen(true);
-//   }}
-//   key={element.id}
-//   className="group w-full sm:w-[400px] rounded-2xl bg-white shadow-xl relative overflow-visible transition-all duration-300 hover:shadow-2xl hover:-translate-y-2"
-// >
-//   {/* Картинка блюда */}
-//   <div className="absolute -top-14 left-1/2 transform -translate-x-1/2">
-//     <img
-//       src={element.portion_options?.[0]?.image || logo}
-//       alt={element.name}
-//       className="w-full h-[150px] rounded-[10px] object-cover border-4 border-white shadow-md transition-all duration-300 group-hover:scale-105"
-//     />
-//   </div>
-
-//   {/* Название, описание, цена, кнопка */}
-//   <div className="pt-[110px] px-5 pb-6 text-center flex flex-col justify-between">
-//     <div>
-//       <h2 className="text-2xl font-bold text-[#1A1A1A] mb-2 group-hover:text-[#BD1619]">
-//         {element.name}
-//       </h2>
-//       <p className="text-gray-500 text-sm leading-relaxed">
-//         {element.description || "Delicious and hot. Ready to eat!"}
-//       </p>
-//     </div>
-
-//     <div className="flex justify-between items-center mt-6">
-//       <span className="text-[#BD1619] text-xl font-bold">
-//         {element.portion_options?.[0]?.price || "???"} сом
-//       </span>
-
-//       {/* Компонент выбора порции */}
-//       <Portion port={element.portion_options} />
-
-//       {/* Кнопка "Add to cart" */}
-//       <button className="add-to-cart-button">Add to cart</button>
-//     </div>
-//   </div>
-// </div>
