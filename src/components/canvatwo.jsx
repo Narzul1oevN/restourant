@@ -3,7 +3,7 @@ import React from "react";
 import stove from "../assets/85786f6d-6e17-4217-9ceb-25a49da0b2b8.mp4.mp4";
 import TypingRest from "./typingRest";
 
-const CanvaRest = () => (
+const CanvaRest = ({ Scroll }) => (
   <section className="relative w-full h-[600px] overflow-hidden">
     {/* Видео фон */}
     <video
@@ -26,10 +26,17 @@ const CanvaRest = () => (
         Наше Меню
       </h1>
       <h2 className="text-white text-3xl sm:text-4xl md:text-5xl font-extrabold mt-2 tracking-wide text-center font-sans">
-        <TypingRest/>
+        <TypingRest />
       </h2>
-      <button className="mt-8 px-8 py-3 border border-white text-white text-sm font-semibold tracking-widest rounded-md hover:bg-white hover:text-black transition-all">
-        Просмотреть меню 
+      <button
+        onClick={() => {
+          document
+            .getElementById("menuScrol")
+            ?.scrollIntoView({ behavior: "smooth" });
+        }}
+        className="mt-8 px-8 py-3 border border-white text-white text-sm font-semibold tracking-widest rounded-md hover:bg-white hover:text-black transition-all"
+      >
+        Просмотреть меню
       </button>
     </div>
   </section>

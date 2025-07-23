@@ -18,9 +18,9 @@ import bgFooter from "../assets/9696-1.jpg";
 import logo from "../assets/Logo Good.png";
 import Slide from "@mui/material/Slide";
 import Portion from "../components/portion";
-import dc from "../assets/dc_logo.svg"
-import eskhata from "../assets/eskhata_logo.jpg"
-import alif from "../assets/alif.png"
+import dc from "../assets/dc_logo.svg";
+import eskhata from "../assets/eskhata_logo.jpg";
+import alif from "../assets/alif.png";
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
@@ -72,6 +72,23 @@ const Layout = () => {
 
     fetchCartItems();
   }, [cart]);
+
+  const [rest, setRest] = useState([]);
+
+  async function getResy() {
+    try {
+      const response = await axios.get(
+        "https://bahtiyor.learn-it-academy.site/api/restaurants/"
+      );
+      setRest(response.data); // Здесь важно: .data
+    } catch (error) {
+      console.error("Ошибка при получении списка ресторанов:", error);
+    }
+  }
+
+  useEffect(() => {
+    getResy();
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -211,10 +228,12 @@ const Layout = () => {
       >
         <div className="w-[80%] m-auto flex justify-between items-center text-gray text-[18px] font-[700]">
           <p className="text-[26px]">Корзина</p>
-          <button onClick={() => {
-            handleClose()
-            setShowOrderForm(false)
-          }}>
+          <button
+            onClick={() => {
+              handleClose();
+              setShowOrderForm(false);
+            }}
+          >
             <CloseIcon />
           </button>
         </div>
@@ -322,10 +341,37 @@ const Layout = () => {
                   <option value="card">Картой при получении</option>
                 </select>
               </label>
+
+              <label className="flex flex-col gap-1">
+                <span className="text-gray-700 font-medium">Рестораны</span>
+                <select
+                  className="border border-gray-300 px-4 py-2 rounded-lg outline-none focus:ring-2 focus:ring-[#BD1619] transition"
+                  defaultValue=""
+                >
+                  <option value="" disabled>
+                    Выберите адресс ресторана
+                  </option>
+                  {rest.map((restaurant) => (
+                    <option key={restaurant.id} value={restaurant.id}>
+                      {restaurant.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
               <div className="w-[90%] m-auto flex justify-evenly items-center">
-                <div className="w-[60px] h-[50px] flex justify-center items-center "> <img className="rounded-[10px]" src={dc} alt="" /> </div>
-                <div className="w-[60px] h-[50px] flex justify-center items-center "> <img className="rounded-[10px]" src={eskhata} alt="" /> </div>
-                <div className="w-[60px] h-[50px] flex justify-center items-center"> <img className="rounded-[10px]" src={alif} alt="" /> </div>
+                <div className="w-[60px] h-[50px] flex justify-center items-center ">
+                  {" "}
+                  <img className="rounded-[10px]" src={dc} alt="" />{" "}
+                </div>
+                <div className="w-[60px] h-[50px] flex justify-center items-center ">
+                  {" "}
+                  <img className="rounded-[10px]" src={eskhata} alt="" />{" "}
+                </div>
+                <div className="w-[60px] h-[50px] flex justify-center items-center">
+                  {" "}
+                  <img className="rounded-[10px]" src={alif} alt="" />{" "}
+                </div>
               </div>
             </form>
           )}

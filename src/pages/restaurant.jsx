@@ -96,7 +96,7 @@ const Restaurant = () => {
       style={{ fontFamily: "Times New Roman, serif" }}
     >
       {/* Канва сверху */}
-      <CanvaRest />
+      <CanvaRest Scroll="#menuScrol"/>
 
       {/* Типы доставки */}
       <div className="w-[100%] flex flex-wrap justify-center items-center gap-[10px] pt-[30px]">
@@ -148,7 +148,7 @@ const Restaurant = () => {
       </div>
 
       {/* Список карточек блюд */}
-      <div className="w-[80%] m-auto flex flex-wrap justify-start items-center gap-6 pt-[100px] pb-[100px] px-4">
+      <div id="menuScrol" className="w-[80%] m-auto flex flex-wrap justify-start items-center gap-6 pt-[100px] pb-[100px] px-4">
         {data.map((element) => (
           <div
             key={element.id}
@@ -159,7 +159,10 @@ const Restaurant = () => {
               alt={element.name}
               className="w-full h-48 object-cover"
               onClick={() => {
-                // Тут вызов setSelectedItem(element) и setOpen(true) если нужно
+                
+                  setSelectedItem(element);
+                  setOpen(true);
+                
               }}
             />
             <div className="p-4">
